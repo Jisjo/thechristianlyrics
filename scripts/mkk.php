@@ -17,7 +17,7 @@
 
 require_once __DIR__ . '/wp-load.php';
 
-$SECRET = 'CHANGE_ME_pick_a_random_string';   // <-- set your key; '' = no check
+$SECRET = 'mkk-7hq2p9x4';   // access key; change anytime, then update your URLs
 $key = isset($_GET['key']) ? $_GET['key'] : '';
 if ($SECRET !== '' && !hash_equals($SECRET, $key)) {
     http_response_code(403);
