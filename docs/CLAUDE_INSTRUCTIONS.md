@@ -8,153 +8,137 @@
 *(Read this first. GitHub is the canonical home — not the Project. Two fixed-name docs, no dated copies.)*
 
 **WHERE TO CHECK (every session start):**
-1. `docs/CLAUDE_INSTRUCTIONS.md` — this file (rules).
-2. `docs/thechristianlyrics_Complete_Reference.md` — **single canonical reference doc** (current state; header shows date + session).
-3. `scripts/mkk.php` — the current audit + fix tool.
+1. `docs/CLAUDE_INSTRUCTIONS.md` — this file (rules + the per-post standard).
+2. `docs/thechristianlyrics_Complete_Reference.md` — single canonical reference doc (current state).
+3. `scripts/mkk.php` — audit + fix + live tracker tool.
 4. `scripts/mkk-s12-data.md` — hardcoded FK/meta data for LIST A+B.
-- All in GitHub repo `Jisjo/thechristianlyrics` (branch `main`). Fetch via GitHub MCP `get_file_contents`. Do **not** rely on Project copies — stale.
+- All in GitHub repo `Jisjo/thechristianlyrics` (branch `main`). Do **not** rely on Project copies — stale.
 
-**WHERE TO UPDATE:**
-- Everything lives in GitHub; Claude reads **and writes** directly (`push_files`).
-- The Project (claude.ai) is read-only to Claude — backup only, or retire it.
+**WHERE / HOW TO UPDATE (single-file model — no dated copies):**
+- Overwrite the two canonical docs in place and push. Put date + session in the header and commit message. Never create dated filenames — Git history is the trail.
+- **For current numbers, defer to the reference doc + live `mkk.php`;** this file holds rules, not live counts.
 
-**HOW TO UPDATE (single-file model — no dated copies):**
-- Reference doc: update throughout the session; at end (or when the chat gets long/compressed), **overwrite `docs/thechristianlyrics_Complete_Reference.md` in place** — same section structure, **update only what changed — never delete existing content** — and push. Put date + session in the **file header** and the **commit message**. **Never create dated filenames** — Git history is the version trail. No need to ask Jisjo to save.
-- This instructions file: when a new rule/learning/"never do" appears, overwrite it in place and push.
-- **For current numbers, defer to the reference doc** — this file holds rules, not live counts.
-
-**Live-data rule:** trust the **live site audit** (`mkk.php`) over any doc's pending list. Docs go stale; the S12 pending list was materially wrong (proven S13).
+**Live-data rule:** trust the live site audit (`mkk.php`) over any doc's pending list.
 
 ---
 
 ## WORKFLOW RULES
-
-### #1 — Every New Conversation
-Read `docs/CLAUDE_INSTRUCTIONS.md` and `docs/thechristianlyrics_Complete_Reference.md` **from GitHub** first (also `scripts/mkk.php` + `scripts/mkk-s12-data.md`). Summarise current state in 3–4 lines. Ask what Jisjo wants to work on. Never ask him to repeat what is already in the reference document.
-
-### #2 — Living Reference Doc
-Update the reference doc automatically throughout the conversation as tasks complete and decisions are made — no need to ask. Before the conversation ends, gets long/compressed, or at EOD — **overwrite `docs/thechristianlyrics_Complete_Reference.md` in place and push it to GitHub** (Claude writes it directly). Present the file to Jisjo as well.
-
-### #3 — When Generating/Updating the Reference Doc
-Read `docs/CLAUDE_INSTRUCTIONS.md` and the reference doc (GitHub) first. Follow the same section structure. Update only what changed — never remove existing content. **Single canonical file `docs/thechristianlyrics_Complete_Reference.md` — overwrite in place; put date + session in the header and commit message; never create dated copies.** Push to GitHub.
-
-### #4 — Living Document
-When new working style, technical learnings, or "never do" items are discovered — overwrite `docs/CLAUDE_INSTRUCTIONS.md` in place and push to GitHub.
-
-### #5 — Confirmation before action (see full rule below)
-Always show the plan first and wait for Jisjo's explicit agreement before executing anything (creates, updates, deletes, tag/slug changes, bulk pushes). Read-only audits may run without confirmation.
+1. **Every new chat:** read the two docs + `mkk.php` from GitHub; summarise state in 3–4 lines; resume. Never make Jisjo repeat what's in the reference doc.
+2. **Living reference doc:** update it through the chat as tasks complete; before the chat ends/compresses, overwrite it in place and push; present it.
+3. **Updating docs:** same section structure; update only what changed; never delete existing content; overwrite in place.
+4. **Living rules:** new rule/learning/"never do" → overwrite this file and push.
+5. **Confirmation:** show the plan and get an explicit "go" before any create/update/delete/tag/slug/bulk write. Read-only audits run without asking.
 
 ---
 
 ## TOOLING — `mkk.php`
-Single server-side file (GitHub `scripts/mkk.php`). Place in WP root, open in browser:
-- `/mkk.php` — **audit, read-only** (issues-only report + summary). Safe anytime, writes nothing.
-- `/mkk.php?fk=1` — full FK / meta / title dump per post (verify FK+meta — NOT REST-readable).
-- `/mkk.php?mode=fix` — fix **dry run** (shows changes, writes nothing).
-- `/mkk.php?mode=fix&live=1` — **apply** fixes.
-- Fixes hardcoded per post, ASCII tokens only (no Malayalam handling → no encoding risk). Extend the `$FIXES` map for new mechanical fixes. Default is read-only; writes require `mode=fix&live=1`. Delete from WP root after a live run.
-
-**Bulk-fix principle:** fix one *issue* across many posts with one hardcoded server-side script — never loop MCP fetch+push (~30KB/round-trip). MCP per-post only for judgement edits.
+Server-side file in WP root (GitHub `scripts/mkk.php`), key-guarded (`?key=mkk-7hq2p9x4`):
+- `/mkk.php?key=K` — audit text (read-only) · `?mode=html` — live dashboard · `?mode=json` — JSON feed (Claude `web_fetch`, must be pasted into chat) · `?fk=1` — full FK/meta/title dump (**only reliable FK/meta check**) · `?mode=fix&live=1` — apply hardcoded fixes.
+- Fixes touch ASCII tokens only (no Malayalam). **Bulk principle:** fix one issue across many posts with one PHP run — never MCP fetch+push loops (~30KB each). MCP per-post only for judgement/content edits.
 
 ---
 
-## NEW POST CREATION RULES
-*(Marthoma Kristheeya Keerthanangal posts only)*
+## THE PER-POST STANDARD
+*(ONE definition of a complete, correct post. Applies equally to creating a new post and to verifying/correcting an existing one. Every item is checked on every post — there is no separate "QC" vs "creation" list.)*
 
-- Check for existing post first — search "NNN." before creating.
-- Title: `[number]. [Malayalam] - [Word1 Word2 Word3/4]` — no "Lyrics" suffix.
-- **Table rows — exactly 4, in this order:** Scripture (BibleGateway) · Song's Chords (Chordify, "Guitar, Ukulele, Piano, Mandolin") · Lyricist (linked to WP tag) · Category (Marthoma Kristheeya Keerthanangal, linked, no `?swcfpc=1`). ❌ No Album row · ❌ no other category rows.
-- Structure: Table → TOC → Listen H2 → YouTube → Intro para → Malayalam H2+lyrics → Manglish H2+lyrics.
-- Tags: alphabetical tag + lyricist tag — always both together.
-- `comment_status: open`, `ping_status: closed`.
-- Focus keyword: first 3–4 Manglish opening words — set in `create_post`.
-- Meta desc ≤160 chars — include focus keyword + soft CTA word (e.g. "Read").
-- Clean syllable-break hyphens from lyrics (Malayalam and Manglish). No placeholder text ever.
+### A. Content accuracy *(per-post; visual/judgement)*
+- **A1. Malayalam lyrics match the hymnal image** `/mnt/project/[song-number].png` — every verse, character-accurate. Claude compares and flags suspected typos; Jisjo confirms; Claude fixes via MCP.
+- **A2. No encoding corruption** — no `ൿ` (U+0D7F) standing in for chillu `ൻ`/`ന്ന`; no `඙` (U+0D99) for `ങ` (June-2026 batch risk).
+- **A3. Manglish** present and matches Malayalam line-by-line; phonetic (not literal); same word spelled consistently across posts.
+- **A4. Verses** all present + numbered; verse paragraphs `has-text-align-center`; no syllable-break hyphens in either script; Manglish verse count = Malayalam verse count.
+
+### B. Structure *(pure Gutenberg — never Elementor)*
+Order: **Info table → TOC → Listen H2 → YouTube → Intro paragraph → Malayalam H2 → Manglish H2.**
+- **B1. Info table = exactly 4 rows:** Scripture (BibleGateway link) · Song's Chords (Chordify link, text "Guitar, Ukulele, Piano, Mandolin") · Lyricist (linked to WP tag) · Category (Marthoma Kristheeya Keerthanangal, linked). ❌ no Album row · ❌ no extra category rows · ❌ no `?swcfpc=1`.
+- **B2. TOC block** (rank-math) with ids `#m` / `#m-1` / `#listen-song`; nav `href` + block JSON `link` + `<h2>` id all match; **never** `<h2>Table of Contents</h2>` inside the block. (JSON key is `headings`.)
+- **B3. Listen H2** = "Listen Song [Title]" — real text, never generic "Here".
+- **B4. YouTube** = correct song, Gutenberg embed (youtu.be). Sourcing order below.
+- **B5. Intro paragraph** — 2 sentences, focus keyword in the first ~10%, Scripture verse linked.
+- **B6.** Malayalam H2 (id `m`) + Manglish H2 (id `m-1`).
+- **B7. No junk markup** — no `swcfpc`, no stray `<meta http-equiv>`, no "Maglish" typo.
+- **B8. No Elementor** — clear all four `_elementor_data` / `_elementor_edit_mode` / `_elementor_template_type` / `_elementor_page_settings` on every update; never add them on new posts.
+
+### C. SEO metadata
+- **C1. Focus keyword** = first 3 Manglish opening words of the song (4 if the 3rd word ≤4 chars). **Set via the RankMath editor or PHP `update_post_meta` — NOT via MCP** (`update_post` returns 200 but drops it). Verify via `mkk.php?fk=1`.
+- **C2. Meta description** ≤160 chars (verify length every time). **LIVE template (canonical):**
+  - with lyricist: `[Song Name] lyrics from Marthoma Kristheeya Keerthanangal by [Lyricist]. Read Malayalam & Manglish lyrics and listen online.`
+  - without lyricist: `[Song Name] lyrics from Marthoma Kristheeya Keerthanangal. Read full Malayalam & Manglish lyrics and listen online.`
+  - `[Song Name]` = the Manglish title (Title Case). **No song number. Never abbreviate "MKK".** Rewrite any legacy/messy meta to this template.
+- **C3. `rank_math_title`** — leave UNSET (global `%title% Lyrics` template). Not an issue.
+- **C4. Featured image** set (`featured_media` ≠ 0) + alt text = focus keyword (first 3 words). Use the project template `templete.webp` (700×280). Jisjo uploads.
+- **C5. Slug** — clean; no number prefix; no "Lyrics"; no stray chars.
+- **C6.** `comment_status: open` (UGC/engagement SEO) · `ping_status: closed`.
+
+### D. Tags
+- **D1.** Both an alphabetical index tag AND the lyricist tag — never one without the other.
+- **D2. Lyricist tag description** — 2–3 sentences (who, era, Marthoma connection, name in Malayalam + Manglish). Set once per lyricist; gives the tag archive its own searchable content.
+
+### E. Schema *(automatic — no per-post work)*
+- Site-wide Code Snippets `snippet-v2.php` emits a JSON-LD `@graph`: **MusicComposition + VideoObject**, language by category (cat 28 → `ml` + `ml-Latn`). It reads **featured image + lyricist tag + YouTube embed + category** — so schema self-corrects once B/C/D are right.
+- RankMath global default post schema = **Article** (indexable base) — confirm once in Titles & Meta.
+- Do NOT add per-post schema or a second schema plugin (avoid duplicate/conflicting markup).
+
+### F. Fix routing (how each item gets done)
+- **PHP bulk (`mkk.php` fix)** — meta (C2), TOC ids (B2), junk (B7), comment/ping (C6): mechanical, high volume.
+- **MCP per-post** — lyrics/Manglish/corruption (A), intro/structure/table (B1/B3/B5), tags (D). Judgement/content.
+- **Jisjo (manual)** — featured images (C4), TOC "Attempt Recovery" + Save after content changes, FK entry in RankMath editor (or Claude via PHP).
+- **Automatic** — schema (E) once the rest is correct.
 
 ---
 
-## QC CHECKLIST
-**Table** — 4 rows: Scripture | Song's Chords | Lyricist | Category · ❌ Album / wrong Category rows · no `?swcfpc=1` · Lyricist linked · Chords verified · no bottom lyricist credit.
-**Structure** — TOC block present (no `<h2>Table of Contents</h2>` inside) · TOC links match H2 IDs (`#listen-song`,`#m`,`#m-1`) · Listen H2 correct text + anchor (NOT generic "Here") · YouTube correct song, Gutenberg embed · Intro 2 sentences, verse linked, FK in first 10%.
-**Lyrics** — all verses present · no chillu encoding errors · no syllable-break hyphens · verse numbers · no bottom credit · `has-text-align-center` · Manglish count matches Malayalam.
-**SEO** — meta ≤160 + FK + soft CTA · FK set · RankMath ≥80 · flag improvements.
-**Post Settings** — slug no number prefix / no "Lyrics" · tags alphabetical + lyricist · category 28 · `comment_status: open`, `ping_status: closed`.
-**Featured Image** — set (`featured_media` ≠ 0) · alt = focus keyword (first 3 words).
-
----
-
-## YOUTUBE SEARCH RULE
+## YOUTUBE SOURCING
 1. **[Manglish song title] Maramon Convention** → 2. **[first Manglish word] Maramon Convention** → 3. ask Jisjo.
-- Priority: DSMC RELEASE/MEDIA > *Maramon Convention – Topic* > other. `youtube_search` MCP reaches Topic-channel videos web search can't. St. James MTC Choir London channel is dead — never use.
+- Priority: DSMC RELEASE/MEDIA > *Maramon Convention – Topic* > other. Use the `youtube_search` MCP (reaches Topic-channel videos web search can't). St. James MTC Choir London channel is dead — never use.
 
----
+## CHORDS
+chordify.net exact song → link directly; else `https://chordify.net/search/[Song+Title]`; external chord URLs also fine. Link text always "Guitar, Ukulele, Piano, Mandolin".
 
-## CHORDS RULE
-1. chordify.net exact song → link directly. 2. Not found → `https://chordify.net/search/[Song+Title]`. 3. External chord URLs also acceptable.
-
----
-
-## RANKMATH META
-- `rank_math_description` → API/PHP ✅ (≤160). NOT in REST batch reads.
-- `rank_math_focus_keyword` → API/PHP ✅. NOT in REST batch reads. **≤4-char rule keys on the 3rd word.**
-- `rank_math_title` → ❌ do NOT set (global `%title% Lyrics` template). **Unset is normal — not an issue; exclude from pending counts.**
-- Verify FK/meta via RankMath editor or `mkk.php?fk=1` (not REST-readable).
-- **Redirects:** RankMath Redirections NOT exposed via WP MCP — RankMath UI (301) or PHP; Jisjo handles.
+## RANKMATH MECHANICS
+- `rank_math_description` — writable via PHP/MCP; NOT returned in REST reads. Verify via `mkk.php?fk=1`.
+- `rank_math_focus_keyword` — **NOT writable via MCP** (returns 200, drops silently); use RankMath editor or PHP `update_post_meta`. NOT readable via REST — verify via `mkk.php?fk=1`.
+- `rank_math_title` — leave unset (template default).
+- **Redirects** — RankMath Redirections NOT exposed via WP MCP; RankMath UI (301) or PHP; Jisjo handles.
 - Alt text IS writable via REST (`claudeus_wp_media__update` → `alt_text`).
 
----
-
-## GUTENBERG / TOC RULES
-- TOC block: Claude sends it in content; Jisjo clicks "Recover"/"Attempt Recovery" after any content change, then Save.
-- NEVER put `<h2>Table of Contents</h2>` inside the TOC block HTML.
-- H2 IDs `listen-song`,`m`,`m-1` (new posts); older may use longer IDs. TOC-block JSON `link`, nav `href`, `<h2>` id must all match.
-- TOC block JSON key is `headings` (not `headers`).
+## GUTENBERG / TOC
+- Claude sends the TOC block in content; **Jisjo clicks "Attempt Recovery" + Save** after any content change.
 - **Malayalam Unicode:** never via shell heredoc (corruption). Use MCP `update_post` (native Unicode) or Python file ops.
 
----
+## FEATURED IMAGE
+- Template `/mnt/user-data/uploads/…webp` (regenerate locally each session; 403 on direct fetch). Always the project template, never custom. Fonts: ML `NotoSansMalayalam-Bold.ttf` 34–36 · EN `FreeSansBold.ttf` 22 · site `FreeSans.ttf` 16. Output to `/mnt/user-data/outputs/`. Jisjo uploads; Claude sets `alt_text` + `featured_media` via API.
 
-## FEATURED IMAGE WORKFLOW
-- Template `/mnt/user-data/uploads/Add_a_heading__4_-converted-from-png.webp` (regenerate locally; 403 on direct fetch). Always the project template, never custom.
-- Fonts: ML `NotoSansMalayalam-Bold.ttf` 34–36 · EN `FreeSansBold.ttf` 22 · site `FreeSans.ttf` 16.
-- Output `/mnt/user-data/outputs/[Song-Name].webp`. Jisjo uploads manually. Claude sets `alt_text` + `featured_media` via API. Alt = FK (first 3 words).
-
----
-
-## RESPONSE FORMAT RULES
-- Always include post URL in every update summary. After each post confirm RankMath fields set. Remind Jisjo of manual actions (TOC recovery, image upload). Reference posts by song name AND number, never post ID alone. Never repeat what's already confirmed in the reference doc.
-
----
+## RESPONSE FORMAT
+- Include the post URL in every update summary. Reference posts by song name AND number, never post ID alone. Remind Jisjo of manual actions (TOC recovery, image upload). Don't repeat what's already in the reference doc.
 
 ## CONFIRMATION RULE
-**Always show the plan first and wait for Jisjo's explicit agreement before executing anything.**
-- Clarifying question → answer first, then wait. Don't answer a question AND execute in the same response.
-- Stop and ask if unclear. Proceed only after explicit "yes/ok/go".
-- **Destructive/bulk writes (delete, trash, mass update, tag/slug change):** name exact targets + effect, then get explicit go.
-- Read-only audits (`mkk.php` default) may run without confirmation.
+Show the plan first; wait for explicit "go" before any create/update/delete/tag/slug/bulk write. Answer a clarifying question first, then wait — don't answer AND execute in one turn. Name exact targets + effect for destructive/bulk writes. Read-only audits run without asking.
 
 ---
 
 ## KEY MISTAKES TO NEVER REPEAT
-1. ❌ `<h2>Table of Contents</h2>` inside TOC block HTML.
-2. ❌ "Maramon Convention - Topic" as a *search query* (the Topic *channel* is a valid source once found).
-3. ❌ Not including post URL in summaries.
-4. ❌ Updating a post via API after Jisjo manually set RankMath fields.
-5. ❌ Answering a clarifying question AND executing in the same response.
+1. ❌ `<h2>Table of Contents</h2>` inside the TOC block.
+2. ❌ "Maramon Convention - Topic" as a *search query* (the Topic *channel* is fine once found).
+3. ❌ Omitting the post URL in summaries.
+4. ❌ Updating a post via API after Jisjo set RankMath fields in the editor (reload first).
+5. ❌ Answering a clarifying question AND executing in the same turn.
 6. ❌ `?swcfpc=1` in any URL.
 7. ❌ "Lyrics" in the English title.
-8. ❌ Meta over 160 chars.
+8. ❌ Meta over 160 chars, or with a song number, or abbreviating "MKK".
 9. ❌ Syllable-break hyphens in lyrics.
-10. ❌ Album row in new posts.
+10. ❌ Album row / extra category rows in the table.
 11. ❌ Setting `rank_math_title` — and don't flag "unset" as an issue.
-12. ❌ Tags via API with only one tag — include ALL.
+12. ❌ Tags via API with only one tag — include ALL (alphabetical + lyricist).
 13. ❌ Related Posts block — not enabled.
-14. ❌ **Confusing song number with post ID** ("125,160,163,83" = song numbers; post IDs 9502/10068/10075/3166). Resolve to post ID before API calls.
-15. ❌ **Trusting a doc's pending list without a live audit** — audit via `mkk.php` first.
-16. ❌ **Assuming the June-2026 post batch is clean** — Malayalam corruption (`ൿ` for chillu `ൻ`/`ന്ന`; `඙` for `ങ`). Fixed: 11762, 11767. To check: 11770, 11772, 11773.
-17. ❌ Writing Malayalam via shell heredoc — use MCP `update_post` or Python file ops.
-18. ❌ Hard-deleting posts — `delete_post` (no `force`) = recoverable Trash; never force-delete duplicates.
-19. ❌ Deduping without a 301 redirect (RankMath UI) old-slug → keeper-slug.
-20. ❌ Creating dated doc copies — overwrite the single canonical file; Git history is the trail.
+14. ❌ **Confusing song number with post ID.** Resolve to the post ID before API calls.
+15. ❌ **Trusting a doc's pending list without a live audit** — audit via `mkk.php`.
+16. ❌ **Assuming the June-2026 batch is clean** — Malayalam corruption (`ൿ` for chillu; `඙` for `ങ`). To check: 11770, 11772, 11773.
+17. ❌ Writing Malayalam via shell heredoc — use MCP `update_post` or Python.
+18. ❌ Hard-deleting posts — `delete_post` (no `force`) = recoverable Trash.
+19. ❌ Deduping without a 301 redirect old-slug → keeper-slug.
+20. ❌ Creating dated doc copies — overwrite the single canonical file.
+21. ❌ **Setting `rank_math_focus_keyword` via MCP** — it silently fails; use RankMath editor or PHP, then verify via `mkk.php?fk=1`.
+22. ❌ Reporting a write "done" from a 200 response — verify in the authoritative source (`mkk.php?fk=1` for FK/meta) first.
+23. ❌ Adding per-post schema or a 2nd schema plugin — schema is automatic via `snippet-v2.php`; keep it single.
 
 ---
 
@@ -162,5 +146,6 @@ Single server-side file (GitHub `scripts/mkk.php`). Place in WP root, open in br
 - Site: https://thechristianlyrics.com · WP Admin: /wp-admin
 - Category ID 28: Marthoma Kristheeya Keerthanangal
 - WP MCP alias: `default_test`
-- GitHub: `Jisjo/thechristianlyrics` (branch `main`) — canonical home; docs in `docs/`, scripts in `scripts/`
+- Schema: Code Snippets `snippet-v2.php` (MusicComposition + VideoObject) + RankMath Article default.
+- GitHub: `Jisjo/thechristianlyrics` (branch `main`) — canonical home; docs in `docs/`, scripts in `scripts/`.
 - Jisjo: jisjokbz.j@gmail.com
