@@ -1,6 +1,6 @@
 # CLAUDE_INSTRUCTIONS.md
 **Project:** thechristianlyrics.com — Marthoma Kristheeya Keerthanangal SEO
-**Last Updated:** 09 Jul 2026 (Session 13)
+**Last Updated:** 12 Jul 2026 (Session 14)
 
 ---
 
@@ -34,7 +34,7 @@
 ## TOOLING — `mkk.php`
 Server-side file in WP root (GitHub `scripts/mkk.php`), key-guarded (`?key=mkk-7hq2p9x4`):
 - `/mkk.php?key=K` — audit text (read-only) · `?mode=html` — live dashboard · `?mode=json` — JSON feed (Claude `web_fetch`, must be pasted into chat) · `?fk=1` — full FK/meta/title dump (**only reliable FK/meta check**) · `?mode=fix&live=1` — apply hardcoded fixes.
-- Fixes touch ASCII tokens only (no Malayalam). **Bulk principle:** fix one issue across many posts with one PHP run — never MCP fetch+push loops (~30KB each). MCP per-post only for judgement/content edits.
+- Fixes touch ASCII tokens only (no Malayalam). **Bulk principle:** fix one issue across many posts with one PHP run — never MCP fetch+push loops (~30KB each). MCP per-post only for judgement/content edits. *(Note: MCP-only mode adopted S14 — meta now via RankMath template, not PHP.)*
 
 ---
 
@@ -59,30 +59,30 @@ Order: **Info table → TOC → Listen H2 → YouTube → Intro paragraph → Ma
 - **B8. No Elementor** — clear all four `_elementor_data` / `_elementor_edit_mode` / `_elementor_template_type` / `_elementor_page_settings` on every update; never add them on new posts.
 
 ### C. SEO metadata
-- **C1. Focus keyword** = first 3 Manglish opening words of the song (4 if the 3rd word ≤4 chars). **Set via the RankMath editor or PHP `update_post_meta` — NOT via MCP** (`update_post` returns 200 but drops it). Verify via `mkk.php?fk=1`.
-- **C2. Meta description** ≤160 chars (verify length every time). **LIVE template (canonical):**
-  - with lyricist: `[Song Name] lyrics from Marthoma Kristheeya Keerthanangal by [Lyricist]. Read Malayalam & Manglish lyrics and listen online.`
-  - without lyricist: `[Song Name] lyrics from Marthoma Kristheeya Keerthanangal. Read full Malayalam & Manglish lyrics and listen online.`
-  - `[Song Name]` = the Manglish title (Title Case). **No song number. Never abbreviate "MKK".** Rewrite any legacy/messy meta to this template.
+- **C1. Focus keyword = the Manglish words used in the post title** (the part after the "–"). The SEO title is capped at ~60 chars, so if the title's Manglish is 2 words, the FK is those same 2 words — **FK must match the title's Manglish exactly; never add words to the FK beyond what the title shows.** Example: song 120 title `Vaagdatha sampoorthiyaayi` (2 words) → FK `Vaagdatha sampoorthiyaayi`, NOT the 3-word `…thiruvavathaaram`. ("First 3 words, 4 if 3rd ≤4 chars" is only a fallback when composing a brand-new title.) **Set via the RankMath editor — MCP write is unreliable** (returns 200 but may drop it); verify via `mkk.php?fk=1`.
+- **C2. Meta description** — now injected site-wide by the **RankMath Single Post Description template** (`%focuskw% lyrics from Marthoma Kristheeya Keerthanangal. Read full Malayalam & Manglish lyrics and listen online.`). No per-post meta writing. Because it keys off `%focuskw%`, C1 (FK correct + matching title) also fixes the meta. ≤160 chars. Verify on the live page after a LiteSpeed cache purge (template renders at page load, so `mkk.php?fk=1` shows `(none)` for per-post meta — that's expected).
 - **C3. `rank_math_title`** — leave UNSET (global `%title% Lyrics` template). Not an issue.
 - **C4. Featured image** set (`featured_media` ≠ 0) + alt text = focus keyword (first 3 words). Use the project template `templete.webp` (700×280). Jisjo uploads.
-- **C5. Slug** — clean; no number prefix; no "Lyrics"; no stray chars.
+- **C5. Slug** — clean; no number prefix; no "Lyrics"; no stray chars. Only fix genuinely broken slugs (number-prefixed / "lyrics" / garbled); leave good ones. Jisjo sets the 301 redirect for any changed slug.
 - **C6.** `comment_status: open` (UGC/engagement SEO) · `ping_status: closed`.
 
 ### D. Tags
 - **D1.** Both an alphabetical index tag AND the lyricist tag — never one without the other.
-- **D2. Lyricist tag description** — 2–3 sentences (who, era, Marthoma connection, name in Malayalam + Manglish). Set once per lyricist; gives the tag archive its own searchable content.
+- **D2. Lyricist tag description** — 40–55 words (who, era, Marthoma connection, name in Malayalam + Manglish); doubles as the term meta. Set once per lyricist; depends on the lyricist tag existing (do tags first). No approval gate — Claude writes + applies; only flags a lyricist whose facts can't be verified (uses a neutral template, never invents biography).
 
-### E. Schema *(automatic — no per-post work)*
+### E. Schema *(automatic — no per-post work; VALIDATED S14: BlogPosting + MusicComposition + VideoObject, 0 errors)*
 - Site-wide Code Snippets `snippet-v2.php` emits a JSON-LD `@graph`: **MusicComposition + VideoObject**, language by category (cat 28 → `ml` + `ml-Latn`). It reads **featured image + lyricist tag + YouTube embed + category** — so schema self-corrects once B/C/D are right.
-- RankMath global default post schema = **Article** (indexable base) — confirm once in Titles & Meta.
+- RankMath global default post schema = **Article / Blog Post** → emits BlogPosting (confirmed set). 
+- **Cannot be edited via MCP** (Code Snippets + RankMath aren't exposed) — snippet edits are paste-by-Jisjo.
+- Open decision: **VideoObject over-claims a third-party video** (ownership). Optional one-time snippet edit to drop it. Not a blocker; schema is valid as-is.
 - Do NOT add per-post schema or a second schema plugin (avoid duplicate/conflicting markup).
 
-### F. Fix routing (how each item gets done)
-- **PHP bulk (`mkk.php` fix)** — meta (C2), TOC ids (B2), junk (B7), comment/ping (C6): mechanical, high volume.
-- **MCP per-post** — lyrics/Manglish/corruption (A), intro/structure/table (B1/B3/B5), tags (D). Judgement/content.
-- **Jisjo (manual)** — featured images (C4), TOC "Attempt Recovery" + Save after content changes, FK entry in RankMath editor (or Claude via PHP).
+### F. Fix routing (how each item gets done — MCP-ONLY mode, S14)
+- **MCP per-post (one update per post)** — lyrics/Manglish/corruption (A), structure/table/TOC-ids/junk/intro (B), clear Elementor (B8), tags (D), comment/ping (C6), broken slug (C5).
+- **RankMath template** — meta (C2), automatic.
+- **Jisjo (manual)** — FK entry (C1), featured image upload (C4), 301 redirects (C5), TOC "Attempt Recovery" + Save (last), final lyrics verification (last), any snippet edit (E).
 - **Automatic** — schema (E) once the rest is correct.
+- **Skip-log:** anything ambiguous → do the safe parts, record post + doubt in `scripts/correction-log.md`, move on; review skipped items at the end.
 
 ---
 
@@ -94,18 +94,26 @@ Order: **Info table → TOC → Listen H2 → YouTube → Intro paragraph → Ma
 chordify.net exact song → link directly; else `https://chordify.net/search/[Song+Title]`; external chord URLs also fine. Link text always "Guitar, Ukulele, Piano, Mandolin".
 
 ## RANKMATH MECHANICS
-- `rank_math_description` — writable via PHP/MCP; NOT returned in REST reads. Verify via `mkk.php?fk=1`.
-- `rank_math_focus_keyword` — **NOT writable via MCP** (returns 200, drops silently); use RankMath editor or PHP `update_post_meta`. NOT readable via REST — verify via `mkk.php?fk=1`.
+- `rank_math_description` — per-post writing abandoned (unreliable via MCP; not shown in the live page after the S14 test). Meta now comes from the Single Post Description **template** (keyed off `%focuskw%`). Verify on the live page after cache purge.
+- `rank_math_focus_keyword` — MCP write unreliable (returns 200, may drop silently); NOT readable via REST. Set via RankMath editor; verify via `mkk.php?fk=1`. *(S14 re-test on post 3377 pending Jisjo's `fk=1` check.)*
 - `rank_math_title` — leave unset (template default).
-- **Redirects** — RankMath Redirections NOT exposed via WP MCP; RankMath UI (301) or PHP; Jisjo handles.
+- **Redirects** — RankMath Redirections NOT exposed via WP MCP; RankMath UI (301); Jisjo handles.
 - Alt text IS writable via REST (`claudeus_wp_media__update` → `alt_text`).
 
 ## GUTENBERG / TOC
 - Claude sends the TOC block in content; **Jisjo clicks "Attempt Recovery" + Save** after any content change.
 - **Malayalam Unicode:** never via shell heredoc (corruption). Use MCP `update_post` (native Unicode) or Python file ops.
+- Note: the rendered "Table of Contents" heading above the nav is a global RankMath TOC-block setting, not in post content — separate from the B2 in-content rule.
 
 ## FEATURED IMAGE
-- Template `/mnt/user-data/uploads/…webp` (regenerate locally each session; 403 on direct fetch). Always the project template, never custom. Fonts: ML `NotoSansMalayalam-Bold.ttf` 34–36 · EN `FreeSansBold.ttf` 22 · site `FreeSans.ttf` 16. Output to `/mnt/user-data/outputs/`. Jisjo uploads; Claude sets `alt_text` + `featured_media` via API.
+- Template `/mnt/user-data/uploads/…webp` (regenerate locally each session; 403 on direct fetch). Always the project template, never custom. Fonts: ML `NotoSansMalayalam-Bold.ttf` 34–36 · EN `FreeSansBold.ttf` 22 · site `FreeSans.ttf` 16. Output to `/mnt/user-data/outputs/`. Keyword-named `.webp` filename before upload. Jisjo uploads; Claude sets `alt_text` + `featured_media` via API.
+
+## ADDITIONAL SEO STANDARDS (documented S14)
+- **Internal linking** — 2–3 contextual links per post (related songs + lyricist archive). Traffic/crawl lever; currently absent — add during content pass where natural.
+- **SEO image filename** — keyword-based `.webp` name, not `Add_a_heading…`.
+- **Tag / category archive descriptions** — alphabetical tags + the MKK category archive should also have short descriptions (40–60 words), not only lyricist tags.
+- **Single primary focus keyword** — many posts have messy comma-separated multi-FKs; reduce to one primary (matching the title).
+- **Word counts** — meta 150–160 chars · SEO title 50–60 · intro 40–60 words · lyricist/tag/category description 40–55 words · alt = FK.
 
 ## RESPONSE FORMAT
 - Include the post URL in every update summary. Reference posts by song name AND number, never post ID alone. Remind Jisjo of manual actions (TOC recovery, image upload). Don't repeat what's already in the reference doc.
@@ -136,9 +144,10 @@ Show the plan first; wait for explicit "go" before any create/update/delete/tag/
 18. ❌ Hard-deleting posts — `delete_post` (no `force`) = recoverable Trash.
 19. ❌ Deduping without a 301 redirect old-slug → keeper-slug.
 20. ❌ Creating dated doc copies — overwrite the single canonical file.
-21. ❌ **Setting `rank_math_focus_keyword` via MCP** — it silently fails; use RankMath editor or PHP, then verify via `mkk.php?fk=1`.
-22. ❌ Reporting a write "done" from a 200 response — verify in the authoritative source (`mkk.php?fk=1` for FK/meta) first.
+21. ❌ **Setting `rank_math_focus_keyword` via MCP** — unreliable; use RankMath editor, then verify via `mkk.php?fk=1`.
+22. ❌ Reporting a write "done" from a 200 response — verify in the authoritative source (`mkk.php?fk=1` for FK, live page for meta) first.
 23. ❌ Adding per-post schema or a 2nd schema plugin — schema is automatic via `snippet-v2.php`; keep it single.
+24. ❌ **FK longer than the title's Manglish** — the focus keyword must match the post title's Manglish words exactly (title is capped ~60 chars); never add extra words.
 
 ---
 
@@ -146,6 +155,8 @@ Show the plan first; wait for explicit "go" before any create/update/delete/tag/
 - Site: https://thechristianlyrics.com · WP Admin: /wp-admin
 - Category ID 28: Marthoma Kristheeya Keerthanangal
 - WP MCP alias: `default_test`
-- Schema: Code Snippets `snippet-v2.php` (MusicComposition + VideoObject) + RankMath Article default.
+- Schema: Code Snippets `snippet-v2.php` (MusicComposition + VideoObject) + RankMath Article/Blog Post (BlogPosting). Validated 0 errors.
+- Meta: RankMath Single Post Description template, keyed off `%focuskw%`.
+- Cache: LiteSpeed — purge after RankMath/template changes to see them live.
 - GitHub: `Jisjo/thechristianlyrics` (branch `main`) — canonical home; docs in `docs/`, scripts in `scripts/`.
 - Jisjo: jisjokbz.j@gmail.com
